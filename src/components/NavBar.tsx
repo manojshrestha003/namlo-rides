@@ -1,5 +1,5 @@
 import type { MouseEventHandler } from 'react';
-import {Car,PersonStanding , ArrowRight,LogOut ,History } from "lucide-react";
+import {Car,LogOut ,History } from "lucide-react";
 
 interface NavBarProps {
   role: string;
