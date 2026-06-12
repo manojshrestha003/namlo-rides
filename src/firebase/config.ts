@@ -3,13 +3,13 @@ import {initializeApp} from 'firebase/app'
 import {getDatabase} from 'firebase/database'
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCKvpP4eVgVsUr-JS2lyrxw4Pcprig6PQY",
-  authDomain: "namlo-rides.firebaseapp.com",
-  databaseURL: "https://namlo-rides-default-rtdb.firebaseio.com/",
-  projectId: "namlo-rides",
-  storageBucket: "namlo-rides.firebasestorage.app",
-  messagingSenderId: "595122403138",
-  appId: "1:595122403138:web:28f3964ba969e542023adb"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  databaseURL: import.meta.env.VITE_FIREBASE_DATABASE_URL,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
 const app = initializeApp(firebaseConfig);

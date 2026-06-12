@@ -3,9 +3,11 @@ import { useRide } from '../context/RideContext';
 import { useAuth } from '../context/authContext';
 import type { Location } from '../types';
 import RideMap from '../components/map/RideMap';
+import NavBar from '../components/NavBar';
 import { useNavigate } from 'react-router-dom';
 import { ref, onValue, off, getDatabase } from 'firebase/database';
 import { usePlaceName } from '../hooks/usePlaceName';
+import { MapPin, } from 'lucide-react';
 // Use local getDatabase() instead of importing db from config
 const db = getDatabase();
 
@@ -42,7 +44,7 @@ const DriverPage = () => {
   const [loading, setLoading] = useState(false);
   const [incomingRide, setIncomingRide] = useState<any>(null);
 
-  const { placeName, loading: placeLoading } = usePlaceName(driverLocation);
+  const { placeName } = usePlaceName(driverLocation);
   // Listen for any incoming ride requests in Firebase
   useEffect(() => {
     const ridesRef = ref(db, 'rides');
@@ -123,175 +125,196 @@ const DriverPage = () => {
     navigate('/login');
   };
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'requesting': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-      case 'accepted':   return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'active':     return 'bg-green-50 text-green-700 border-green-200';
-      case 'completed':  return 'bg-green-50 text-green-700 border-green-200';
-      case 'cancelled':  return 'bg-red-50 text-red-700 border-red-200';
-      case 'rejected':   return 'bg-red-50 text-red-700 border-red-200';
-      default:           return 'bg-gray-50 text-gray-700 border-gray-200';
-    }
+  const statusConfig: Record<string, {
+    label: string;
+    subtext: string;
+    buttonLabel: string;
+    buttonColor: string;
+    statusColor: string;
+  }> = {
+    requesting: {
+      label: 'Waiting for ride requests...',
+      subtext: 'Listening for incoming trips',
+      buttonLabel: 'Reject Request',
+      buttonColor: 'bg-red-500/10 hover:bg-red-500/20 text-red-600 border-red-200',
+      statusColor: 'bg-amber-100 border-amber-200 text-amber-700',
+    },
+    accepted: {
+      label: 'Ride accepted',
+      subtext: 'Heading to pickup location',
+      buttonLabel: 'Start Ride',
+      buttonColor: 'bg-blue-600 hover:bg-blue-700 text-white',
+      statusColor: 'bg-blue-100 border-blue-200 text-blue-700',
+    },
+    active: {
+      label: 'Ride in progress',
+      subtext: 'Complete the ride when finished',
+      buttonLabel: 'Complete Ride',
+      buttonColor: 'bg-green-600 hover:bg-green-700 text-white',
+      statusColor: 'bg-green-100 border-green-200 text-green-700',
+    },
+    completed: {
+      label: 'Ride completed',
+      subtext: 'Saved to history',
+      buttonLabel: 'View History',
+      buttonColor: 'bg-slate-900 hover:bg-slate-800 text-white',
+      statusColor: 'bg-green-100 border-green-200 text-green-700',
+    },
+    cancelled: {
+      label: 'Ride cancelled',
+      subtext: 'The rider cancelled the trip',
+      buttonLabel: 'View History',
+      buttonColor: 'bg-slate-900 hover:bg-slate-800 text-white',
+      statusColor: 'bg-red-100 border-red-200 text-red-700',
+    },
+    rejected: {
+      label: 'Ride rejected',
+      subtext: 'You rejected this ride',
+      buttonLabel: 'View History',
+      buttonColor: 'bg-slate-900 hover:bg-slate-800 text-white',
+      statusColor: 'bg-red-100 border-red-200 text-red-700',
+    },
   };
 
+  const currentStatus = ride?.status ? statusConfig[ride.status] : null;
+
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-screen flex flex-col bg-slate-900">
+      <NavBar
+        role="Driver"
+        onHistory={() => navigate('/history')}
+        onLogout={handleLogout}
+      />
 
-      {/* Navbar */}
-      <div className="flex items-center justify-between px-4 py-3 bg-white border-b border-gray-100 z-10">
-        <div className="flex items-center gap-2">
-          <span className="text-lg font-semibold text-gray-900">Namlo Rides</span>
-          <span className="text-xs bg-green-100 text-green-600 px-2 py-0.5 rounded-full font-medium">
-            Driver
-          </span>
-        </div>
-        <div className="flex items-center gap-3">
-          <button
-            onClick={() => navigate('/history')}
-            className="text-sm text-gray-500 hover:text-gray-700 transition-colors"
-          >
-            History
-          </button>
-          <button
-            onClick={handleLogout}
-            className="text-sm text-gray-500 hover:text-red-500 transition-colors"
-          >
-            Logout
-          </button>
-        </div>
-      </div>
+      <div className="flex-1 flex overflow-hidden">
+        <div className="w-96 shrink-0 bg-slate-900 border-r border-white/10 flex flex-col overflow-y-auto">
+          <div className="px-6 pt-6 pb-4 border-b border-white/5">
+            <div className="flex items-center gap-2 mb-1">
+              <span className="text-base font-bold text-white">Driver dashboard</span>
+            </div>
+            <p className="text-xs text-white/40">
+              Manage incoming requests and complete rides.
+            </p>
+          </div>
 
-      {/* Map */}
-      <div className="flex-1 relative">
-        <RideMap
-          pickupLocation={ride?.pickup}
-          driverLocation={driverLocation}
-        />
-
-        {/* Bottom panel */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
-          <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-4 space-y-3">
-
-            {/* No active ride — waiting */}
-            {!ride && !incomingRide && (
-              <div className="text-center py-2">
-                <p className="text-sm text-gray-400">
-                  Waiting for ride requests...
-                </p>
-                <div className="flex justify-center gap-1 mt-2">
-                  <span className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                  <span className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                  <span className="w-1.5 h-1.5 bg-gray-300 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
-                </div>
+          <div className="flex-1 px-6 py-5 space-y-4">
+            {currentStatus && (
+              <div className={`rounded-3xl border px-4 py-4 ${currentStatus.statusColor}`}>
+                <p className="text-sm font-semibold text-slate-900">{currentStatus.label}</p>
+                <p className="mt-1 text-xs text-slate-600">{currentStatus.subtext}</p>
               </div>
             )}
 
-            {/* Incoming ride request */}
+            {!ride && !incomingRide && (
+              <div className="rounded-3xl border border-white/10 bg-slate-950/70 p-4 text-white">
+                <p className="text-sm font-semibold">Waiting for ride requests</p>
+                <p className="mt-2 text-xs text-white/40">Your app is listening for riders nearby.</p>
+              </div>
+            )}
+
             {incomingRide && ride && (
-              <div className="space-y-3">
+              <div className="space-y-4 rounded-3xl border border-white/10 bg-slate-950/70 p-4 text-white">
                 <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-gray-900">
-                    New ride request!
-                  </p>
-                  <span className="text-xs bg-yellow-100 text-yellow-600 px-2 py-0.5 rounded-full">
+                  <div>
+                    <p className="text-sm font-semibold">Incoming ride request</p>
+                    <p className="text-xs text-white/40">Review pickup and rider details.</p>
+                  </div>
+                  <span className="rounded-full bg-yellow-100/15 px-2 py-1 text-[11px] font-medium  tracking-[0.2em] text-yellow-200">
                     Incoming
                   </span>
                 </div>
 
-                <div className="bg-gray-50 rounded-xl px-3 py-2 space-y-1">
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Pickup</span>
-                    <span className="text-gray-700 font-medium">
-                     📍 {placeName || `${ride.pickup.lat.toFixed(4)}, ${ride.pickup.lng.toFixed(4)}`}
-                    </span>
+                <div className="rounded-3xl border border-white/10 bg-slate-900 p-4">
+                  <div className="flex items-center justify-between text-xs text-white/40">
+                    <span>Pickup</span>
+                    <span className="font-medium text-white">{placeName || `${ride.pickup.lat.toFixed(4)}, ${ride.pickup.lng.toFixed(4)}`}</span>
                   </div>
-                  <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">Rider </span>
-                    <span className="text-gray-700 font-medium">
-                      {incomingRide.riderId}
-                    </span>
+                  <div className="mt-3 flex items-center justify-between text-xs text-white/40">
+                    <span>Rider</span>
+                    <span className="font-medium text-white">{incomingRide.riderId}</span>
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={handleReject}
-                    disabled={loading}
-                    className="py-3 rounded-xl text-sm font-medium border border-red-200 text-red-600 
-                    bg-red-50 hover:bg-red-100 transition-colors disabled:opacity-50"
-                  >
-                    Reject
-                  </button>
+                <div className="grid gap-3">
                   <button
                     onClick={handleAccept}
                     disabled={loading}
-                    className="py-3 rounded-xl text-sm font-medium bg-green-600 hover:bg-green-700
-                     text-white transition-colors disabled:opacity-50"
+                    className="w-full rounded-3xl bg-green-600 px-4 py-4 text-sm font-semibold text-white transition hover:bg-green-700 disabled:opacity-50"
                   >
-                    {loading ? 'Accepting...' : 'Accept'}
+                    {loading ? 'Accepting...' : 'Accept Ride'}
+                  </button>
+                  <button
+                    onClick={handleReject}
+                    disabled={loading}
+                    className="w-full rounded-3xl border border-red-500/20 bg-red-50 px-4 py-4 text-sm font-semibold text-red-600 transition hover:bg-red-100 disabled:opacity-50"
+                  >
+                    Reject
                   </button>
                 </div>
               </div>
             )}
 
-            {/* Accepted — heading to pickup */}
             {ride?.status === 'accepted' && (
-              <div className="space-y-3">
-                <div className={`text-sm px-3 py-2 rounded-lg border ${getStatusColor('accepted')}`}>
-                  Heading to pickup location...
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Pickup</span>
-                  <span className="text-gray-700 font-medium">
-                    {ride.pickup.lat.toFixed(4)}, {ride.pickup.lng.toFixed(4)}
-                  </span>
+              <div className="space-y-4 rounded-3xl border border-white/10 bg-slate-950/70 p-4 text-white">
+                <div className="flex items-center justify-between text-xs text-white/40">
+                  <span>Pickup</span>
+                  <span className="font-medium text-white">{ride.pickup.lat.toFixed(4)}, {ride.pickup.lng.toFixed(4)}</span>
                 </div>
                 <button
                   onClick={handleStart}
                   disabled={loading}
-                  className="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl text-sm transition-colors disabled:opacity-50"
+                  className="w-full rounded-3xl bg-blue-600 px-4 py-4 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-50"
                 >
                   {loading ? 'Starting...' : 'Start Ride'}
                 </button>
               </div>
             )}
 
-            {/* Active ride */}
             {ride?.status === 'active' && (
-              <div className="space-y-3">
-                <div className={`text-sm px-3 py-2 rounded-lg border ${getStatusColor('active')}`}>
-                  Ride in progress
-                </div>
+              <div className="space-y-4 rounded-3xl border border-white/10 bg-slate-950/70 p-4 text-white">
+                <div className="text-sm font-semibold">Ride in progress</div>
                 <button
                   onClick={handleComplete}
                   disabled={loading}
-                  className="w-full bg-green-600 hover:bg-green-700 text-white font-medium py-3 rounded-xl text-sm transition-colors disabled:opacity-50"
+                  className="w-full rounded-3xl bg-green-600 px-4 py-4 text-sm font-semibold text-white transition hover:bg-green-700 disabled:opacity-50"
                 >
                   {loading ? 'Completing...' : 'Complete Ride'}
                 </button>
               </div>
             )}
 
-            {/* Terminal states */}
             {ride && ['completed', 'cancelled', 'rejected'].includes(ride.status) && (
-              <div className="space-y-3">
-                <div className={`text-sm px-3 py-2 rounded-lg border ${getStatusColor(ride.status)}`}>
+              <div className="space-y-4 rounded-3xl border border-white/10 bg-slate-950/70 p-4 text-white">
+                <div className="text-sm font-semibold">
                   {ride.status === 'completed' && '✅ Ride completed — saved to history'}
                   {ride.status === 'cancelled' && '❌ Ride was cancelled by rider'}
                   {ride.status === 'rejected' && '❌ You rejected this ride'}
                 </div>
                 <button
                   onClick={() => navigate('/history')}
-                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-3 
-                  rounded-xl text-sm transition-colors"
+                  className="w-full rounded-3xl bg-slate-900 px-4 py-4 text-sm font-semibold text-white transition hover:bg-slate-800"
                 >
                   View History
                 </button>
               </div>
             )}
-
           </div>
+        </div>
+
+        <div className="flex-1 relative">
+          <RideMap
+            pickupLocation={ride?.pickup}
+            driverLocation={driverLocation}
+          />
+
+          {!ride && !incomingRide && (
+            <div className="absolute top-4 left-1/2 -translate-x-1/2 z-10">
+              <div className="flex items-center gap-2 rounded-full border border-white/10 bg-slate-900/80 px-4 py-2 text-xs text-white/80 shadow-lg shadow-slate-900/20">
+                <MapPin className="w-3.5 h-3.5 text-blue-400" />
+                Waiting for the next ride request
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

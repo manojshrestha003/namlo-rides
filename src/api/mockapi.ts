@@ -1,7 +1,9 @@
 
 import axios from 'axios';
 
-const BASE_URL = 'https://6a2a91d4b687a7d5cbc3fd7c.mockapi.io/api/v1'
+const BASE_URL = import.meta.env.VITE_BASE_URL;
+
+
 
 export interface Ride {
   id?: string;
