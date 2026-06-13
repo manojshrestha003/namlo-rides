@@ -8,7 +8,7 @@ import { useNavigate } from 'react-router-dom';
 import { ref, onValue, off, getDatabase } from 'firebase/database';
 import { usePlaceName } from '../hooks/usePlaceName';
 import { MapPin, } from 'lucide-react';
-// Use local getDatabase() instead of importing db from config
+
 const db = getDatabase();
 
 const KATHMANDU: Location = { lat: 27.7172, lng: 85.3240 };
@@ -93,7 +93,7 @@ const DriverPage = () => {
       });
     }, 2000); // every 2s — not every tick
 
-    return () => clearInterval(interval); // cleanup!
+    return () => clearInterval(interval); // cleanup
   }, [ride?.status]);
 
   const handleAccept = async () => {

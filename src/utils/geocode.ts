@@ -1,9 +1,9 @@
-// Cache — same coords never fetch twice
+
 const cache = new Map<string, string>();
 
 const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
 
-let lastRequestTime = 0; // track last fetch time
+let lastRequestTime = 0;
 
 export const getPlaceName = async (
   lat: number,
@@ -11,11 +11,10 @@ export const getPlaceName = async (
 ): Promise<string> => {
   const key = `${lat.toFixed(4)},${lng.toFixed(4)}`;
 
-  // ✅ Return from cache instantly — no network call
   if (cache.has(key)) return cache.get(key)!;
 
   try {
-    // ✅ Enforce 1.2s gap between requests
+    
     const now = Date.now();
     const timeSinceLast = now - lastRequestTime;
     if (timeSinceLast < 1200) {
@@ -40,12 +39,12 @@ export const getPlaceName = async (
     const name =
       road || suburb || neighbourhood || city || town || county || data.display_name;
 
-    // ✅ Save to cache
+    
     cache.set(key, name);
     return name;
 
   } catch {
-    // Fallback to coordinates if anything fails
+    
     return `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
   }
 };
