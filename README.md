@@ -1,73 +1,124 @@
-# React + TypeScript + Vite
+---
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+## Local Setup
 
-Currently, two official plugins are available:
+### Prerequisites
+- Node.js 18+
+- npm 9+
+- Firebase project with Realtime Database enabled
+- MockAPI.io project with a `rides` resource
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+### 1. Clone the repository
 
-## React Compiler
-
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+git clone https://github.com/manojshrestha003/namlo-rides
+cd namlo-rides
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### 2. Install dependencies
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
 ```
+
+### 3. Configure environment variables
+
+Create a `.env` file in the project root:
+
+```env
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project.firebaseapp.com
+VITE_FIREBASE_DATABASE_URL=https://your_project-default-rtdb.firebaseio.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
+VITE_MOCKAPI_URL=https://YOUR_ID.mockapi.io/api/v1
+```
+
+### 4. Start the dev server
+
+```bash
+npm run dev
+```
+
+Open [http://localhost:5173](http://localhost:5173)
+
+### 5. Build for production
+
+```bash
+npm run build
+```
+
+---
+
+## 🚀 Deployment (Vercel)
+
+1. Push your repo to GitHub
+2. Go to [vercel.com](https://vercel.com) → **Add New Project** → import repo
+3. Framework preset auto-detects **Vite**
+4. Add all `.env` variables under **Environment Variables**
+5. Click **Deploy**
+
+> Make sure your MockAPI resource remains active and your Firebase Realtime Database is in **test mode** or has appropriate read/write rules.
+
+---
+
+## 🔥 Firebase Setup
+
+1. Go to [console.firebase.google.com](https://console.firebase.google.com)
+2. Create a project → Register a web app
+3. Go to **Build → Realtime Database → Create Database**
+4. Choose a region → Start in **test mode**
+5. Copy the config values into your `.env`
+
+**Database rules (test mode):**
+```json
+{
+  "rules": {
+    ".read": true,
+    ".write": true
+  }
+}
+```
+
+---
+
+## 🌐 MockAPI Setup
+
+1. Go to [mockapi.io](https://mockapi.io) → Create a project
+2. Add a resource named `rides` with these fields:
+
+| Field | Type |
+|---|---|
+| id | String (auto) |
+| riderId | String |
+| driverId | String |
+| status | String |
+| pickup | Object |
+| createdAt | String |
+
+3. Copy your base URL into `VITE_MOCKAPI_URL`
+
+---
+
+##  Submission Checklist
+
+- [x] Login works with hardcoded test credentials
+- [x] Two browser tabs sync in real time (Rider + Driver)
+- [x] Driver marker moves on map toward pickup
+- [x] Completed/cancelled/rejected rides saved to MockAPI
+- [x] History page fetches and displays past rides
+- [x] Reverse geocoding shows real place names
+- [x] Auth persists across page reloads
+- [x] All Firebase listeners cleaned up on unmount
+- [x] No custom backend — Firebase + MockAPI only
+- [x] Live Vercel deployment working
+- [x] GitHub repository is public
+- [x] README complete
+
+---
+
+## 👤 Author
+
+Built by **[Your Name]** for the Namlo Technologies Frontend Intern Challenge.
