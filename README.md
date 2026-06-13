@@ -8,7 +8,7 @@ A production-grade real-time ride-sharing simulation platform built for the **Na
 
 | | |
 |---|---|
-| **Live Demo** | https://namlo-rides-two.vercel.app/login |
+| **Live Demo** | https://namlo-rides-two.vercel.app |
 | **GitHub Repo** | https://github.com/manojshrestha003/namlo-rides |
 
 ---
