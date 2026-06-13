@@ -218,7 +218,7 @@ const HistoryPage = () => {
         {/* Ride cards */}
         {!loading && rides.length > 0 && (
           <div className="space-y-3">
-            {rides.map((ride, index) => {
+            {rides.map((ride) => {
               const config = statusConfig[ride.status] ?? {
                 badge: 'bg-slate-700/50 text-slate-300 border-slate-600/40',
                 glow: '',
