@@ -1,6 +1,165 @@
+#  Namlo Rides — Real-Time Ride Sharing Simulator
+
+A production-grade real-time ride-sharing simulation platform built for the **Namlo Technologies Frontend Intern Challenge**. The application simulates both Rider and Driver experiences within a single unified React codebase, synchronized live via Firebase Realtime Database.
+
 ---
 
-## Local Setup
+##  Links
+
+| | |
+|---|---|
+| **Live Demo** | https://namlo-rides-two.vercel.app/login |
+| **GitHub Repo** | https://github.com/manojshrestha003/namlo-rides |
+
+---
+
+## 🔐 Test Credentials
+
+```
+Email:    intern@namlotech.com
+Password: namlo2026
+```
+
+---
+
+## 🖥️ How to Test (Two-Tab Simulation)
+
+1. Open the live link in **two browser tabs side by side**
+2. **Tab 1** → Login → Select **Rider**
+3. **Tab 2** → Login → Select **Driver**
+4. **Rider tab** — tap anywhere on the map to set a pickup location
+5. **Rider tab** — click **Request Ride**
+6. **Driver tab** — incoming request appears instantly
+7. **Driver tab** — click **Accept** (or Reject)
+8. Watch the **green driver marker** move toward pickup in real time on both maps
+9. **Driver tab** — click **Start Ride** → **Complete Ride**
+10. Ride is automatically saved to history via MockAPI REST
+11. Click **History** in the navbar to view all past rides
+
+---
+
+##  Features
+
+### Rider
+- Tap map to set pickup location with reverse geocoding (real place names)
+- Request, track, and cancel rides in real time
+- Live driver location shown on map as green moving marker
+- Ride status updates instantly — Requesting → Accepted → Active → Completed
+- View full ride history fetched from MockAPI
+
+### Driver
+- Incoming ride requests appear automatically
+- Accept or reject rides
+- Simulated movement toward pickup location
+- Start and complete rides
+- View ride history
+
+### General
+- Secure login with hardcoded test credentials
+- Auth state persists across page reloads via localStorage
+- Reverse geocoding via Nominatim (OpenStreetMap) with localStorage cache
+- Real-time sync via Firebase Realtime Database WebSocket
+- Ride history persisted to MockAPI REST on terminal state
+- Full ride lifecycle state machine with transition guards
+- Responsive split-panel layout (controls left, map right)
+- Dark glassmorphism UI throughout
+
+---
+
+##  Tech Stack
+
+| Layer | Technology | Purpose |
+|---|---|---|
+| Framework | React 18 + TypeScript | UI and type safety |
+| Build tool | Vite | Fast dev server and bundling |
+| Styling | Tailwind CSS | Utility-first styling |
+| Icons | Lucide React | Consistent icon set |
+| Routing | React Router v6 | Client-side navigation |
+| Map | React-Leaflet + OpenStreetMap | Interactive map, no API key needed |
+| Real-time | Firebase Realtime Database | WebSocket-based live sync |
+| History API | MockAPI.io | Free REST mock for ride persistence |
+| Geocoding | Nominatim (OpenStreetMap) | Reverse geocoding coordinates to place names |
+| Deployment | Vercel | CI/CD from GitHub |
+
+---
+
+##  Architecture
+
+### Hybrid Data Architecture
+
+The app cleanly separates two distinct data concerns:
+
+**Firebase Realtime Database** (WebSocket — high frequency)
+- Live driver location updates pushed every 2 seconds
+- Ride status changes (requesting → accepted → active → terminal)
+- Sub-second sync between Rider and Driver tabs
+- Data is transient — only active ride state lives here
+
+**MockAPI REST** (HTTP — archival)
+- Triggered once when a ride reaches a terminal state (completed / cancelled / rejected)
+- Single `POST /rides` call persists the full ride record
+- `GET /rides` fetches history list on the History page
+- Acts as the permanent paper trail
+
+This separation means Firebase handles what needs to be **fast**, and MockAPI handles what needs to **persist**.
+
+---
+
+### Ride State Machine
+
+All ride lifecycle transitions are guarded by `canTransition()` in `src/utils/stateMachine.ts` — illegal state jumps are blocked at the source.
+
+```
+idle
+  └─▶ requesting
+        ├─▶ rejected   (terminal) ──▶ MockAPI POST
+        ├─▶ cancelled  (terminal) ──▶ MockAPI POST
+        └─▶ accepted
+              ├─▶ cancelled  (terminal) ──▶ MockAPI POST
+              └─▶ active
+                    ├─▶ cancelled  (terminal) ──▶ MockAPI POST
+                    └─▶ completed  (terminal) ──▶ MockAPI POST
+```
+
+Terminal states automatically trigger the REST persistence call — this is the bridge between the two data layers.
+
+---
+
+
+
+## 📁 Project Structure
+
+```
+src/
+├── api/
+│   └── mockapi.ts          # REST calls to MockAPI (save + fetch rides)
+├── components/
+│   ├── Map/
+│   │   └── RideMap.tsx     # React-Leaflet map, Kathmandu center
+│   └── NavBar.tsx          # Shared dark navbar with role badge
+├── context/
+│   ├── authContext.tsx     # Login state, persisted in localStorage
+│   └── RideContext.tsx     # Firebase sync, state machine, MockAPI trigger
+├── firebase/
+│   └── config.ts           # Firebase initialization
+├── hooks/
+│   └── usePlaceName.ts     # Reverse geocoding hook with cleanup
+├── pages/
+│   ├── LoginPage.tsx       # Dark glassmorphism login
+│   ├── SelectRolePage.tsx  # Role picker (Rider / Driver)
+│   ├── RiderPage.tsx       # Split layout — controls left, map right
+│   ├── DriverPage.tsx      # Incoming requests, movement simulation
+│   └── HistoryPage.tsx     # Past rides fetched from MockAPI
+├── types/
+│   └── index.ts            # Shared TypeScript interfaces
+└── utils/
+    ├── stateMachine.ts     # Ride lifecycle transitions + guards
+    └── geocode.ts          # Nominatim fetcher with queue + persistent cache
+```
+
+---
+
+## ⚙️ Local Setup
 
 ### Prerequisites
 - Node.js 18+
@@ -52,15 +211,7 @@ npm run build
 
 ---
 
-## 🚀 Deployment (Vercel)
 
-1. Push your repo to GitHub
-2. Go to [vercel.com](https://vercel.com) → **Add New Project** → import repo
-3. Framework preset auto-detects **Vite**
-4. Add all `.env` variables under **Environment Variables**
-5. Click **Deploy**
-
-> Make sure your MockAPI resource remains active and your Firebase Realtime Database is in **test mode** or has appropriate read/write rules.
 
 ---
 
@@ -102,7 +253,7 @@ npm run build
 
 ---
 
-##  Submission Checklist
+## 📋 Submission Checklist
 
 - [x] Login works with hardcoded test credentials
 - [x] Two browser tabs sync in real time (Rider + Driver)
@@ -121,4 +272,4 @@ npm run build
 
 ## 👤 Author
 
-Built by **[Your Name]** for the Namlo Technologies Frontend Intern Challenge.
+Built by **Manoj Shrestha** for the Namlo Technologies Frontend Intern Challenge.
